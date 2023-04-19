@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>文本轉換器</title>
+</head>
+<body>
+  <textarea id="input-text"></textarea>
+  <textarea id="output-text"></textarea>
+  <button id="transform-btn">轉換</button>
+
+  <script>
+    const inputTextArea = document.getElementById('input-text');
+    const outputTextArea = document.getElementById('output-text');
+    const transformBtn = document.getElementById('transform-btn');
+
+    transformBtn.addEventListener('click', () => {
+      const inputText = inputTextArea.value;
+      const transformedText = inputText.replace(/-\r\n|-\n/g, '').replace(/\r\n|\n/g, ' ');
+      outputTextArea.value = transformedText;
+    });
+  </script>
+</body>
+</html>
