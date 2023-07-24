@@ -21,49 +21,77 @@
     <div>鍛鍊時間 (秒): <input type="number" id="exercise-time" value="30"></div>
     <div>休息時間 (秒): <input type="number" id="rest-time" value="10"></div>
     <div>冷卻時間 (秒): <input type="number" id="cooldown-time" value="15"></div>
-    <button onclick="startTimer()">開始</button>
+  <button onclick="startTimer()">開始</button>
   <div id="timer-display">00:00</div>
   </div>
 
   <script>
-    function startTimer() {
-      const prepareTime = parseInt(document.getElementById('prepare-time').value);
-      const exerciseTime = parseInt(document.getElementById('exercise-time').value);
-      const restTime = parseInt(document.getElementById('rest-time').value);
-      const cooldownTime = parseInt(document.getElementById('cooldown-time').value);
+  let currentPhase = ''; // 紀錄當前的計時階段
 
-      const totalTime =
-        prepareTime +
-        (exerciseTime + restTime) * 3 +
-        cooldownTime;
+  function startTimer() {
+    const prepareTime = parseInt(document.getElementById('prepare-time').value);
+    const exerciseTime = parseInt(document.getElementById('exercise-time').value);
+    const restTime = parseInt(document.getElementById('rest-time').value);
+    const cooldownTime = parseInt(document.getElementById('cooldown-time').value);
 
-      let currentTime = totalTime;
+    const totalTime =
+      prepareTime +
+      (exerciseTime + restTime) * 3 +
+      cooldownTime;
 
-      const timerInterval = setInterval(() => {
-        currentTime--;
+    let currentTime = totalTime;
+    currentPhase = 'prepare'; // 設置當前階段為準備時間
 
-        if (currentTime === 0) {
-          clearInterval(timerInterval);
-          showNotification('計時結束');
-        } else {
+    const timerInterval = setInterval(() => {
+      currentTime--;
+
+      if (currentTime === 0) {
+        clearInterval(timerInterval);
+        showNotification('計時結束');
+      } else {
+        if (currentPhase === 'prepare') {
           if (currentTime === prepareTime) {
             showNotification('開始鍛鍊');
-          } else if (currentTime % (exerciseTime + restTime) === 0) {
+          }
+        } else if (currentPhase === 'exercise') {
+          if (currentTime % (exerciseTime + restTime) === 0) {
             showNotification('休息時間');
           } else if (currentTime % (exerciseTime + restTime) === exerciseTime) {
             showNotification('開始鍛鍊');
           }
-          displayTime(currentTime);
         }
-      }, 1000);
-    }
 
-    function displayTime(seconds) {
-      const minutes = Math.floor(seconds / 60);
-      const remainingSeconds = seconds % 60;
-      const formattedTime = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-      document.getElementById('timer-display').innerText = formattedTime;
+        displayTime(currentTime);
+        // 檢查是否要進入下一階段
+        checkPhaseChange(currentTime, prepareTime, exerciseTime, restTime, cooldownTime);
+      }
+    }, 1000);
+  }
+
+  function checkPhaseChange(currentTime, prepareTime, exerciseTime, restTime, cooldownTime) {
+    if (currentTime === prepareTime) {
+      currentPhase = 'exercise';
+    } else if (currentTime > prepareTime && currentTime <= prepareTime + exerciseTime) {
+      currentPhase = 'exercise';
+    } else if (
+      currentTime > prepareTime + exerciseTime &&
+      currentTime <= prepareTime + exerciseTime + restTime
+    ) {
+      currentPhase = 'rest';
+    } else if (
+      currentTime > prepareTime + exerciseTime + restTime &&
+      currentTime <= prepareTime + exerciseTime + restTime + cooldownTime
+    ) {
+      currentPhase = 'cooldown';
     }
+  }
+
+  function displayTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    const formattedTime = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    document.getElementById('timer-display').innerText = formattedTime;
+  }
 
     function showNotification(message) {
       if (Notification.permission !== 'granted') {
