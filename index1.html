@@ -1,141 +1,41 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>運動計時器</title>
+    <title>運動計時器</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .timer {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-  <h1>運動計時器</h1>
-  <div>
-    <label for="prepare-time">準備時間（秒）：</label>
-    <input type="number" id="prepare-time" value="10">
-  </div>
-  <div>
-    <label for="exercise-time">鍛鍊時間（秒）：</label>
-    <input type="number" id="exercise-time" value="30">
-  </div>
-  <div>
-    <label for="rest-time">休息時間（秒）：</label>
-    <input type="number" id="rest-time" value="20">
-  </div>
-  <div>
-    <label for="cooldown-time">冷卻時間（秒）：</label>
-    <input type="number" id="cooldown-time" value="15">
-  </div>
-  <button id="start-button">開始</button>
-  <button id="pause-button">暫停</button>
-  <button id="reset-button">重設</button>
-  <div>
-    <h2>計時器</h2>
-    <p id="current-phase">準備時間</p>
-    <p id="timer-display">00:00</p>
-  </div>
+    <h1>運動計時器</h1>
+    <label for="prepareTime">準備時間（秒）：</label>
+    <input type="number" id="prepareTime" value="5" />
+    <br />
+    <label for="exerciseTime">鍛鍊時間（秒）：</label>
+    <input type="number" id="exerciseTime" value="30" />
+    <br />
+    <label for="restTime">休息時間（秒）：</label>
+    <input type="number" id="restTime" value="10" />
+    <br />
+    <label for="cooldownTime">冷卻時間（秒）：</label>
+    <input type="number" id="cooldownTime" value="5" />
+    <br />
+    <label for="cycles">週期：</label>
+    <input type="number" id="cycles" value="3" />
+    <br />
+    <button onclick="startTimer()">開始計時</button>
+    <button onclick="stopTimer()">停止計時</button>
 
-  <script>
-    let prepareTime, exerciseTime, restTime, cooldownTime;
-    let currentTime = 0;
-    let timerInterval;
-    let stage = 'prepare';
+    <div class="timer" id="timerDisplay"></div>
 
-    const timerDisplay = document.getElementById('timer-display');
-    const currentPhaseDisplay = document.getElementById('current-phase');
-
-    function formatTime(seconds) {
-      const minutes = Math.floor(seconds / 60);
-      const remainingSeconds = seconds % 60;
-      return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-    }
-
-    function showNotification(message) {
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification(message);
-      }
-    }
-
-    function updatePhaseDisplay() {
-      let phaseText = '準備時間';
-      if (stage === 'exercise') {
-        phaseText = '鍛鍊時間';
-      } else if (stage === 'rest') {
-        phaseText = '休息時間';
-      } else if (stage === 'cooldown') {
-        phaseText = '冷卻時間';
-      }
-      currentPhaseDisplay.textContent = phaseText;
-    }
-
-    function startTimer() {
-      prepareTime = parseInt(document.getElementById('prepare-time').value);
-      exerciseTime = parseInt(document.getElementById('exercise-time').value);
-      restTime = parseInt(document.getElementById('rest-time').value);
-      cooldownTime = parseInt(document.getElementById('cooldown-time').value);
-
-      currentTime = prepareTime;
-      timerDisplay.textContent = formatTime(currentTime);
-      updatePhaseDisplay();
-
-      showNotification('準備時間開始');
-      stage = 'prepare';
-
-      timerInterval = setInterval(function () {
-        currentTime--;
-
-        if (currentTime >= 0) {
-          timerDisplay.textContent = formatTime(currentTime);
-        } else {
-          clearInterval(timerInterval);
-          if (stage === 'prepare') {
-            showNotification('準備時間結束，開始鍛鍊！');
-            currentTime = exerciseTime;
-            stage = 'exercise';
-          } else if (stage === 'exercise') {
-            showNotification('鍛鍊時間結束，休息一下！');
-            currentTime = restTime;
-            stage = 'rest';
-          } else if (stage === 'rest') {
-            showNotification('休息時間結束，繼續鍛鍊！');
-            currentTime = exerciseTime;
-            stage = 'exercise';
-          } else if (stage === 'cooldown') {
-            showNotification('冷卻時間結束，完成運動！');
-            timerDisplay.textContent = '00:00';
-          }
-
-          if (stage !== 'cooldown') {
-            updatePhaseDisplay();
-            timerInterval = setInterval(function () {
-              currentTime--;
-              if (currentTime >= 0) {
-                timerDisplay.textContent = formatTime(currentTime);
-              } else {
-                clearInterval(timerInterval);
-              }
-            }, 1000);
-          }
-        }
-      }, 1000);
-    }
-
-    function pauseTimer() {
-      clearInterval(timerInterval);
-      showNotification('計時暫停');
-    }
-
-    function resetTimer() {
-      clearInterval(timerInterval);
-      timerDisplay.textContent = '00:00';
-      currentPhaseDisplay.textContent = '準備時間';
-      showNotification('計時重設');
-      stage = 'prepare';
-    }
-
-    document.getElementById('start-button').addEventListener('click', startTimer);
-    document.getElementById('pause-button').addEventListener('click', pauseTimer);
-    document.getElementById('reset-button').addEventListener('click', resetTimer);
-
-    // 請求使用者授權通知
-    if ('Notification' in window) {
-      Notification.requestPermission();
-    }
-  </script>
+    <script src="js/clock.js"></script>
 </body>
 </html>
