@@ -2,6 +2,7 @@ let timerInterval;
 let currentPhase = "prepare";
 let phaseTime = 0;
 let cyclesLeft = 0;
+let isPaused = false; // New variable to track the paused state
 
 function displayNotification(message) {
     if (Notification.permission === "granted") {
@@ -24,15 +25,32 @@ function startTimer() {
 
     phaseTime = prepareTime;
     currentPhase = "prepare";
-
+	
     timerInterval = setInterval(updateTimer, 1000);
+    if (!timerInterval) { // Only reset the timer if it's not already running
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    isPaused = false; // Set isPaused to false to indicate the timer is not paused
+
 }
 
 function stopTimer() {
     clearInterval(timerInterval);
 }
-
+function pauseTimer() {
+    clearInterval(timerInterval);
+    isPaused = true; // Set isPaused to true to indicate the timer is paused
+}
+function continueTimer() {
+    if (isPaused) { // Only continue the timer if it was paused
+        isPaused = false; // Set isPaused to false to indicate the timer is not paused
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+}
 function updateTimer() {
+	if (isPaused) return; // If timer is paused, do nothing and exit early
+
     phaseTime--;
 
     if (phaseTime === 0) {
