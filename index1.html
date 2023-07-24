@@ -22,6 +22,7 @@
     <div>休息時間 (秒): <input type="number" id="rest-time" value="10"></div>
     <div>冷卻時間 (秒): <input type="number" id="cooldown-time" value="15"></div>
     <button onclick="startTimer()">開始</button>
+  <div id="timer-display">00:00</div>
   </div>
 
   <script>
@@ -75,6 +76,12 @@
         new Notification(message);
       }
     }
+  function displayTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    const formattedTime = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    document.getElementById('timer-display').innerText = formattedTime;
+  }
   </script>
 </body>
 </html>
