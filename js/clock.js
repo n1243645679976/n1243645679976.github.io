@@ -8,6 +8,7 @@ let prepareTime; // Declare as global variables
 let exerciseTime;
 let restTime;
 let cooldownTime;
+let pausedTime = 0;
 
 function displayNotification(message) {
     if (Notification.permission === "granted") {
@@ -50,11 +51,14 @@ function stopTimer() {
 function pauseTimer() {
     clearInterval(timerInterval);
     isPaused = true; // Set isPaused to true to indicate the timer is paused
+	pausedTime = new Date(); // Store the timestamp when the timer is paused
 }
 function continueTimer() {
     if (isPaused) {
       isPaused = false;
-      startTime = new Date() - (phaseTime * 1000); // Adjust start time based on remaining time
+      const currentTime = new Date();
+      const timePaused = Math.floor((currentTime - pausedTime) / 1000); // Calculate time passed during pause in seconds
+      startTime = new Date(startTime.getTime() + timePaused * 1000); // Adjust the startTime by adding the paused time
       timerInterval = setInterval(updateTimer, 100);
     }
 }
