@@ -60,6 +60,7 @@
           videoData = parseFileContent(fileContent);
           showVideoList(videoData);
         });
+		originalVideoData = [...videoData];
     }
 
     // 解析檔案內容為影片資料
@@ -95,59 +96,57 @@
     }
 
     // 播放指定的YouTube影片從指定的開始時間到結束時間
-    function playVideo(videoID, startTime, endTime) {
-      if (player) {
-        player.loadVideoById({
-          videoId: videoID,
-          startSeconds: startTime,
-          endSeconds: endTime,
-          suggestedQuality: 'default'
-        });
-      }
-    }
+	  function playVideo(videoID, startTime, endTime) {
+		if (player) {
+		  player.loadVideoById({
+			videoId: videoID,
+			startSeconds: startTime,
+			endSeconds: endTime,
+			suggestedQuality: 'default'
+		  });
+		}
+	  }
 
     // 連續播放功能
-    var continuousPlaybackCheckbox = document.getElementById('continuousPlayback');
-    continuousPlaybackCheckbox.addEventListener('change', function () {
-      if (continuousPlaybackCheckbox.checked) {
-        playVideosContinuously(videoData);
+      var continuousPlaybackCheckbox = document.getElementById('continuousPlayback');
+  continuousPlaybackCheckbox.addEventListener('change', function () {
+    if (continuousPlaybackCheckbox.checked) {
+      videoData = originalVideoData.slice(); // 使用原始的videoData，以確保隨機攪亂後連續播放正確
+      playVideosContinuously();
+    }
+  });
+
+  function playVideosContinuously() {
+    var currentIndex = 0;
+    function playNextVideo() {
+      if (currentIndex < videoData.length) {
+        var currentVideo = videoData[currentIndex];
+        playVideo(currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
+        currentIndex++;
+      }
+    }
+
+    player.addEventListener('onStateChange', function (event) {
+      if (event.data === YT.PlayerState.ENDED) {
+        playNextVideo();
       }
     });
 
-    function playVideosContinuously(videoData) {
-      var currentIndex = 0;
-      function playNextVideo() {
-        if (currentIndex < videoData.length) {
-          var currentVideo = videoData[currentIndex];
-          playVideo(currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
-          currentIndex++;
-        } else {
-          currentIndex = 0;
-        }
-      }
+    playNextVideo();
+  }
 
-      player.addEventListener('onStateChange', function (event) {
-        if (event.data === YT.PlayerState.ENDED) {
-          playNextVideo();
-        }
-      });
+  var shuffleButton = document.getElementById('shuffleButton');
+  shuffleButton.addEventListener('click', function () {
+    shuffleVideos();
+    showVideoList(videoData);
+  });
 
-      playNextVideo();
+  function shuffleVideos() {
+    for (var i = videoData.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      [videoData[i], videoData[j]] = [videoData[j], videoData[i]];
     }
-
-    // 隨機攪亂功能
-    var shuffleButton = document.getElementById('shuffleButton');
-    shuffleButton.addEventListener('click', function () {
-      shuffleVideos(videoData);
-      showVideoList(videoData);
-    });
-
-    function shuffleVideos(array) {
-      for (var i = array.length - 1; i > 0; i--) {
-        var j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-    }
+  }
   </script>
 </body>
 </html>
