@@ -45,17 +45,22 @@
         width: '640', // 影片寬度
         playerVars: {
           autoplay: 0 // 不要自動播放
+        },
+        events: {
+          'onReady': onPlayerReady
         }
       });
     }
 
-    // 讀取預設的input.txt內容，並在右邊顯示名稱列表
-    fetch('input.txt')
-      .then(response => response.text())
-      .then(fileContent => {
-        videoData = parseFileContent(fileContent);
-        showVideoList(videoData);
-      });
+    function onPlayerReady(event) {
+      // 讀取預設的input.txt內容，並在右邊顯示名稱列表
+      fetch('input.txt')
+        .then(response => response.text())
+        .then(fileContent => {
+          videoData = parseFileContent(fileContent);
+          showVideoList(videoData);
+        });
+    }
 
     // 解析檔案內容為影片資料
     function parseFileContent(content) {
