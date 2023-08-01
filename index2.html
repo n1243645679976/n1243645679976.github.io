@@ -38,6 +38,8 @@
 
     var player;
     var videoData = [];
+    var isContinuousPlayback = false;
+    var continuousIndex = 0;
 
     function onYouTubeIframeAPIReady() {
       player = new YT.Player('player', {
@@ -47,7 +49,8 @@
           autoplay: 0 // 不要自動播放
         },
         events: {
-          'onReady': onPlayerReady
+          'onReady': onPlayerReady,
+          'onStateChange': onPlayerStateChange
         }
       });
     }
@@ -60,7 +63,6 @@
           videoData = parseFileContent(fileContent);
           showVideoList(videoData);
         });
-		originalVideoData = [...videoData];
     }
 
     // 解析檔案內容為影片資料
@@ -96,57 +98,55 @@
     }
 
     // 播放指定的YouTube影片從指定的開始時間到結束時間
-	  function playVideo(videoID, startTime, endTime) {
-		if (player) {
-		  player.loadVideoById({
-			videoId: videoID,
-			startSeconds: startTime,
-			endSeconds: endTime,
-			suggestedQuality: 'default'
-		  });
-		}
-	  }
-
-    // 連續播放功能
-      var continuousPlaybackCheckbox = document.getElementById('continuousPlayback');
-  continuousPlaybackCheckbox.addEventListener('change', function () {
-    if (continuousPlaybackCheckbox.checked) {
-      videoData = originalVideoData.slice(); // 使用原始的videoData，以確保隨機攪亂後連續播放正確
-      playVideosContinuously();
-    }
-  });
-
-  function playVideosContinuously() {
-    var currentIndex = 0;
-    function playNextVideo() {
-      if (currentIndex < videoData.length) {
-        var currentVideo = videoData[currentIndex];
-        playVideo(currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
-        currentIndex++;
+    function playVideo(videoID, startTime, endTime) {
+      if (player) {
+        player.loadVideoById({
+          videoId: videoID,
+          startSeconds: startTime,
+          endSeconds: endTime,
+          suggestedQuality: 'default'
+        });
       }
     }
 
-    player.addEventListener('onStateChange', function (event) {
-      if (event.data === YT.PlayerState.ENDED) {
+    // 連續播放功能
+    var continuousPlaybackCheckbox = document.getElementById('continuousPlayback');
+    continuousPlaybackCheckbox.addEventListener('change', function () {
+      isContinuousPlayback = continuousPlaybackCheckbox.checked;
+      if (isContinuousPlayback) {
+        continuousIndex = 0;
         playNextVideo();
       }
     });
 
-    playNextVideo();
-  }
-
-  var shuffleButton = document.getElementById('shuffleButton');
-  shuffleButton.addEventListener('click', function () {
-    shuffleVideos();
-    showVideoList(videoData);
-  });
-
-  function shuffleVideos() {
-    for (var i = videoData.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      [videoData[i], videoData[j]] = [videoData[j], videoData[i]];
+    function playNextVideo() {
+      if (isContinuousPlayback && continuousIndex < videoData.length) {
+        var currentVideo = videoData[continuousIndex];
+        playVideo(currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
+        continuousIndex++;
+      }
     }
-  }
+
+    // 隨機攪亂功能
+    var shuffleButton = document.getElementById('shuffleButton');
+    shuffleButton.addEventListener('click', function () {
+      shuffleVideos();
+      showVideoList(videoData);
+    });
+
+    function shuffleVideos() {
+      for (var i = videoData.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        [videoData[i], videoData[j]] = [videoData[j], videoData[i]];
+      }
+    }
+
+    // 監聽播放器狀態，如果為ENDED狀態，則播放下一個影片
+    function onPlayerStateChange(event) {
+      if (event.data === YT.PlayerState.ENDED && isContinuousPlayback) {
+        playNextVideo();
+      }
+    }
   </script>
 </body>
 </html>
