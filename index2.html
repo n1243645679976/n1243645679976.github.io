@@ -17,6 +17,14 @@
   </style>
 </head>
 <body>
+  <!-- 連續播放的checkbox -->
+  <label>
+    <input type="checkbox" id="continuousPlayback"> 連續播放
+  </label>
+
+  <!-- 隨機攪亂按鈕 -->
+  <button id="shuffleButton">隨機攪亂</button>
+
   <!-- 在此處顯示名稱列表 -->
   <ul class="video-list" id="videoList"></ul>
   <div id="player"></div>
@@ -29,6 +37,8 @@
     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
     var player;
+    var videoData = [];
+
     function onYouTubeIframeAPIReady() {
       player = new YT.Player('player', {
         height: '360', // 影片高度
@@ -43,7 +53,7 @@
     fetch('input.txt')
       .then(response => response.text())
       .then(fileContent => {
-        var videoData = parseFileContent(fileContent);
+        videoData = parseFileContent(fileContent);
         showVideoList(videoData);
       });
 
@@ -88,6 +98,49 @@
           endSeconds: endTime,
           suggestedQuality: 'default'
         });
+      }
+    }
+
+    // 連續播放功能
+    var continuousPlaybackCheckbox = document.getElementById('continuousPlayback');
+    continuousPlaybackCheckbox.addEventListener('change', function () {
+      if (continuousPlaybackCheckbox.checked) {
+        playVideosContinuously(videoData);
+      }
+    });
+
+    function playVideosContinuously(videoData) {
+      var currentIndex = 0;
+      function playNextVideo() {
+        if (currentIndex < videoData.length) {
+          var currentVideo = videoData[currentIndex];
+          playVideo(currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
+          currentIndex++;
+        } else {
+          currentIndex = 0;
+        }
+      }
+
+      player.addEventListener('onStateChange', function (event) {
+        if (event.data === YT.PlayerState.ENDED) {
+          playNextVideo();
+        }
+      });
+
+      playNextVideo();
+    }
+
+    // 隨機攪亂功能
+    var shuffleButton = document.getElementById('shuffleButton');
+    shuffleButton.addEventListener('click', function () {
+      shuffleVideos(videoData);
+      showVideoList(videoData);
+    });
+
+    function shuffleVideos(array) {
+      for (var i = array.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
       }
     }
   </script>
