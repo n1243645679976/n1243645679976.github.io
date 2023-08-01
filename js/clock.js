@@ -3,6 +3,11 @@ let currentPhase = "prepare";
 let phaseTime = 0;
 let cyclesLeft = 0;
 let isPaused = false; // New variable to track the paused state
+let startTime; // New variable to store the start time
+let prepareTime; // Declare as global variables
+let exerciseTime;
+let restTime;
+let cooldownTime;
 
 function displayNotification(message) {
     if (Notification.permission === "granted") {
@@ -17,23 +22,27 @@ function displayNotification(message) {
 }
 
 function startTimer() {
-    const prepareTime = parseInt(document.getElementById("prepareTime").value);
-    const exerciseTime = parseInt(document.getElementById("exerciseTime").value);
-    const restTime = parseInt(document.getElementById("restTime").value);
-    const cooldownTime = parseInt(document.getElementById("cooldownTime").value);
+    prepareTime = parseInt(document.getElementById("prepareTime").value);
+    exerciseTime = parseInt(document.getElementById("exerciseTime").value);
+    restTime = parseInt(document.getElementById("restTime").value);
+    cooldownTime = parseInt(document.getElementById("cooldownTime").value);
     cyclesLeft = parseInt(document.getElementById("cycles").value);
 
-    phaseTime = prepareTime;
-    currentPhase = "prepare";
-	
-    timerInterval = setInterval(updateTimer, 1000);
-    if (!timerInterval) { // Only reset the timer if it's not already running
-        timerInterval = setInterval(updateTimer, 1000);
-    }
+	isPaused = false; // Set isPaused to false to indicate the timer is not paused
 
-    isPaused = false; // Set isPaused to false to indicate the timer is not paused
+	phaseTime = prepareTime;
+	currentPhase = "prepare";
+
+	timerInterval = setInterval(updateTimer, 100);
+	if (!timerInterval) { // Only reset the timer if it's not already running
+		timerInterval = setInterval(updateTimer, 100);
+	}
+
+
+	startTime = new Date(); // Store the start time
 
 }
+
 
 function stopTimer() {
     clearInterval(timerInterval);
@@ -43,15 +52,19 @@ function pauseTimer() {
     isPaused = true; // Set isPaused to true to indicate the timer is paused
 }
 function continueTimer() {
-    if (isPaused) { // Only continue the timer if it was paused
-        isPaused = false; // Set isPaused to false to indicate the timer is not paused
-        timerInterval = setInterval(updateTimer, 1000);
+    if (isPaused) {
+      isPaused = false;
+      startTime = new Date() - (phaseTime * 1000); // Adjust start time based on remaining time
+      timerInterval = setInterval(updateTimer, 100);
     }
 }
 function updateTimer() {
 	if (isPaused) return; // If timer is paused, do nothing and exit early
 
-    phaseTime--;
+    const currentTime = new Date();
+    const elapsedTime = Math.floor((currentTime - startTime) / 1000); // Calculate elapsed time in seconds
+    phaseTime = getRemainingTime(currentPhase, elapsedTime); // Calculate remaining time for the current phase
+
 
     if (phaseTime === 0) {
         switch (currentPhase) {
@@ -86,7 +99,20 @@ function updateTimer() {
 
     updateDisplay();
 }
-
+function getRemainingTime(phase, elapsedTime) {
+	switch (phase) {
+	  case "prepare":
+		return Math.max(0, prepareTime - elapsedTime);
+	  case "exercise":
+		return Math.max(0, exerciseTime - elapsedTime);
+	  case "rest":
+		return Math.max(0, restTime - elapsedTime);
+	  case "cooldown":
+		return Math.max(0, cooldownTime - elapsedTime);
+	  default:
+		return 0;
+	}
+}
 function updateDisplay() {
     const timerDisplay = document.getElementById("timerDisplay");
     timerDisplay.textContent = `${currentPhase.toUpperCase()}倒數計時: ${phaseTime} 秒`;
