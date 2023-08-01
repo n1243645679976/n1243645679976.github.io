@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>YouTube嵌入影片</title>
+  <style>
+    /* 自訂樣式 */
+    .video-list {
+      list-style: none;
+      padding: 0;
+    }
+    .video-list-item {
+      cursor: pointer;
+      margin-bottom: 5px;
+      padding: 5px;
+      background-color: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <!-- 在此處顯示名稱列表 -->
+  <ul class="video-list" id="videoList"></ul>
+  <div id="player"></div>
+  <script>
+    // 嵌入YouTube播放器API的程式碼
+    // 確保您已將此程式碼引入HTML頁面中
+    var tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    var player;
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('player', {
+        height: '360', // 影片高度
+        width: '640', // 影片寬度
+        playerVars: {
+          autoplay: 0 // 不要自動播放
+        }
+      });
+    }
+
+    // 讀取預設的input.txt內容，並在右邊顯示名稱列表
+    fetch('input.txt')
+      .then(response => response.text())
+      .then(fileContent => {
+        var videoData = parseFileContent(fileContent);
+        showVideoList(videoData);
+      });
+
+    // 解析檔案內容為影片資料
+    function parseFileContent(content) {
+      var lines = content.split(/\r\n|\n/);
+      var videoData = [];
+      for (var i = 0; i < lines.length; i++) {
+        var parts = lines[i].split(',');
+        if (parts.length === 4) {
+          var videoID = parts[0].trim();
+          var name = parts[1].trim();
+          var startTime = parseInt(parts[2].trim());
+          var endTime = parseInt(parts[3].trim());
+          videoData.push({ videoID, name, startTime, endTime });
+        }
+      }
+      return videoData;
+    }
+
+    // 在右邊顯示名稱列表
+    function showVideoList(videoData) {
+      var videoListElement = document.getElementById('videoList');
+      videoListElement.innerHTML = '';
+      videoData.forEach(function (video) {
+        var listItem = document.createElement('li');
+        listItem.textContent = video.name;
+        listItem.classList.add('video-list-item');
+        listItem.addEventListener('click', function () {
+          playVideo(video.videoID, video.startTime, video.endTime);
+        });
+        videoListElement.appendChild(listItem);
+      });
+    }
+
+    // 播放指定的YouTube影片從指定的開始時間到結束時間
+    function playVideo(videoID, startTime, endTime) {
+      if (player) {
+        player.loadVideoById({
+          videoId: videoID,
+          startSeconds: startTime,
+          endSeconds: endTime,
+          suggestedQuality: 'default'
+        });
+      }
+    }
+  </script>
+</body>
+</html>
