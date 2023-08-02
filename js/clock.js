@@ -9,6 +9,8 @@ let exerciseTime;
 let restTime;
 let cooldownTime;
 let pausedTime = 0;
+let originalExerciseTime;
+let originalRestTime;
 
 function displayNotification(message) {
     if (Notification.permission === "granted") {
@@ -39,6 +41,8 @@ function startTimer() {
 		timerInterval = setInterval(updateTimer, 100);
 	}
 
+    originalExerciseTime = exerciseTime;
+    originalRestTime = restTime;
 
 	startTime = new Date(); // Store the start time
 
@@ -63,59 +67,78 @@ function continueTimer() {
     }
 }
 function updateTimer() {
-	if (isPaused) return; // If timer is paused, do nothing and exit early
+	
+  if (isPaused) return;
 
     const currentTime = new Date();
-    const elapsedTime = Math.floor((currentTime - startTime) / 1000); // Calculate elapsed time in seconds
-    phaseTime = getRemainingTime(currentPhase, elapsedTime); // Calculate remaining time for the current phase
-
+    const elapsedTime = Math.floor((currentTime - startTime) / 1000);
+    phaseTime = getRemainingTime(currentPhase, elapsedTime);
 
     if (phaseTime === 0) {
-        switch (currentPhase) {
-            case "prepare":
-                phaseTime = parseInt(document.getElementById("exerciseTime").value);
-                currentPhase = "exercise";
-                displayNotification("開始鍛鍊時間！");
-                break;
-            case "exercise":
-                phaseTime = parseInt(document.getElementById("restTime").value);
-                currentPhase = "rest";
-                displayNotification("開始休息時間！");
-                break;
-            case "rest":
-                cyclesLeft--;
-                if (cyclesLeft === 0) {
-                    phaseTime = parseInt(document.getElementById("cooldownTime").value);
-                    currentPhase = "cooldown";
-                    displayNotification("開始冷卻時間！");
-                } else {
-                    phaseTime = parseInt(document.getElementById("exerciseTime").value);
-                    currentPhase = "exercise";
-                    displayNotification("回到鍛鍊時間！");
-                }
-                break;
-            case "cooldown":
-                clearInterval(timerInterval);
-                displayNotification("計時結束！");
-                break;
-        }
+      switch (currentPhase) {
+        case "prepare":
+          // Remaining code remains the same
+          break;
+        case "exercise":
+          // Remaining code remains the same
+          break;
+        case "rest":
+          // Remaining code remains the same
+          break;
+        case "cooldown":
+          clearInterval(timerInterval);
+          displayNotification("計時結束！");
+          break;
+      }
+
+      // Update startTime when switching phases
+      switch (currentPhase) {
+        case "prepare":
+          currentPhase = "exercise";
+          phaseTime = exerciseTime;
+          startTime = new Date();
+          displayNotification("開始鍛鍊時間！");
+          break;
+        case "exercise":
+          currentPhase = "rest";
+          phaseTime = restTime;
+          startTime = new Date();
+          displayNotification("開始休息時間！");
+          break;
+        case "rest":
+          currentPhase = "exercise";
+          cyclesLeft--;
+          if (cyclesLeft === 0) {
+            phaseTime = cooldownTime;
+            currentPhase = "cooldown";
+            startTime = new Date();
+            displayNotification("開始冷卻時間！");
+          } else {
+            phaseTime = exerciseTime;
+            startTime = new Date();
+            displayNotification("回到鍛鍊時間！");
+          }
+        case "cooldown":
+          // No need to update startTime in the cooldown phase
+          break;
+      }
     }
 
     updateDisplay();
 }
 function getRemainingTime(phase, elapsedTime) {
-	switch (phase) {
-	  case "prepare":
-		return Math.max(0, prepareTime - elapsedTime);
-	  case "exercise":
-		return Math.max(0, exerciseTime - elapsedTime);
-	  case "rest":
-		return Math.max(0, restTime - elapsedTime);
-	  case "cooldown":
-		return Math.max(0, cooldownTime - elapsedTime);
-	  default:
-		return 0;
-	}
+    switch (phase) {
+      case "prepare":
+        return Math.max(0, prepareTime - elapsedTime);
+      case "exercise":
+        return Math.max(0, originalExerciseTime - elapsedTime); // Use originalExerciseTime
+      case "rest":
+        return Math.max(0, originalRestTime - elapsedTime); // Use originalRestTime
+      case "cooldown":
+        return Math.max(0, cooldownTime - elapsedTime);
+      default:
+        return 0;
+    }
 }
 function updateDisplay() {
     const timerDisplay = document.getElementById("timerDisplay");
