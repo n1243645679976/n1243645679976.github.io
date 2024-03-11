@@ -74,14 +74,32 @@
         if (parts.length === 4) {
           var videoID = parts[0].trim();
           var name = parts[1].trim();
-          var startTime = parseInt(parts[2].trim());
-          var endTime = parseInt(parts[3].trim());
+		  var startTime = parseTime(parts[2].trim());
+		  var endTime = parseTime(parts[3].trim());
           videoData.push({ videoID, name, startTime, endTime });
         }
       }
       return videoData;
     }
 
+
+	function parseTime(timeString) {
+	  var timeParts = timeString.split(':');
+	  var seconds = 0;
+	  if (timeParts.length === 3) {
+		seconds += parseInt(timeParts[0]) * 3600; // hours
+		seconds += parseInt(timeParts[1]) * 60;   // minutes
+		seconds += parseInt(timeParts[2]);        // seconds
+	  } else if (timeParts.length === 2) {
+		seconds += parseInt(timeParts[0]) * 60;   // minutes
+		seconds += parseInt(timeParts[1]);        // seconds
+	  } else if (timeParts.length === 1) {
+		seconds += parseInt(timeParts[0]);
+	  }
+	  var date = new Date(null);
+	  date.setSeconds(seconds);
+	  return date.toISOString().substr(11, 8);
+	}
     // 在右邊顯示名稱列表
     function showVideoList(videoData) {
       var videoListElement = document.getElementById('videoList');
