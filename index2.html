@@ -186,6 +186,7 @@
 
     // 監聽播放器狀態，如果為ENDED狀態，則播放下一個影片
     function onPlayerStateChange(event) {
+		console.log(event);
       if (event.data === YT.PlayerState.ENDED && isContinuousPlayback) {
         playNextVideo();
       }
