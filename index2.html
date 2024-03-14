@@ -45,8 +45,9 @@
     var player;
     var videoData = [];
     var isContinuousPlayback = false;
-    var Index = 0;
+	var isRandomPlay = false;
 	var isAutoPlay = false;
+    var Index = 0;
 
     function onYouTubeIframeAPIReady() {
 	console.log('apiready')
@@ -170,26 +171,27 @@
     function playNextVideo() {
 	  console.log("PlayNextVideoFirst", Index, videoData[Index]);
       if (isContinuousPlayback && Index < videoData.length) {
-        currentVideo = videoData[Index];
-		player.seekTo(currentVideo.startTime)
-		console.log(Index)
-        Index++;
-        var currentVideo = videoData[Index];
-        playVideo(currentVideo.i, currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
+		  if(isRandomPlay){
+			currentVideo = videoData[Index];
+			player.seekTo(currentVideo.startTime)
+			Index = getRandomInt(0, videoData.length)
+			console.log(Index)
+			var currentVideo = videoData[Index];
+			playVideo(Index, currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
+		  }
+		  else{
+			currentVideo = videoData[Index];
+			player.seekTo(currentVideo.startTime)
+			console.log(Index)
+			Index++;
+			var currentVideo = videoData[Index];
+			playVideo(currentVideo.i, currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
+		}
       }
-	  else if(isRandomPlay){
-        currentVideo = videoData[Index];
-		player.seekTo(currentVideo.startTime)
-		Index = getRandomInt(0, videoData.length)
-		console.log(Index)
-		var currentVideo = videoData[Index];
-        playVideo(Index, currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
-	  }
     }
 
     // 監聽播放器狀態，如果為ENDED狀態，則播放下一個影片
     function onPlayerStateChange(event) {
-	console.log('statechange', event.data, event)
       if (event.data === YT.PlayerState.ENDED && isContinuousPlayback) {
         playNextVideo();
       }
