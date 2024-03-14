@@ -48,6 +48,7 @@
     var Index = 0;
 
     function onYouTubeIframeAPIReady() {
+	console.log('apiready')
       player = new YT.Player('player', {
 		host: 'https://www.youtube-nocookie.com',
         height: '360', // 影片高度
@@ -63,6 +64,8 @@
     }
 
     function onPlayerReady(event) {
+	
+	console.log('ready')
       fetch('input.txt')
         .then(response => response.text())
         .then(fileContent => {
@@ -121,10 +124,7 @@
 
     function playVideo(i, videoID, startTime, endTime) {
 	  Index = i;
-	  console.log(i, videoID, startTime, endTime);
-	  console.log("playVideo");
-	  console.log(Index)
-	  console.log(videoData[Index]);
+	  console.log("playVideo", Index, videoData[Index], i, videoID, startTime, endTime);
       if (player) {
 		if(isAutoPlay){
 			player.loadVideoById({
@@ -167,9 +167,7 @@
 	}
 	
     function playNextVideo() {
-	  console.log("PlayNextVideoFirst");
-	  console.log(Index);
-	  console.log(videoData[Index]);
+	  console.log("PlayNextVideoFirst", Index, videoData[Index]);
       if (isContinuousPlayback && Index < videoData.length) {
 		console.log(Index)
         Index++;
@@ -186,9 +184,7 @@
 
     // 監聽播放器狀態，如果為ENDED狀態，則播放下一個影片
     function onPlayerStateChange(event) {
-		console.log(event);
       if (event.data === YT.PlayerState.ENDED && isContinuousPlayback) {
-		console.log(event);
         playNextVideo();
       }
     }
