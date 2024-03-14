@@ -45,7 +45,7 @@
     var player;
     var videoData = [];
     var isContinuousPlayback = false;
-    var continuousIndex = 0;
+    var Index = 0;
 
     function onYouTubeIframeAPIReady() {
       player = new YT.Player('player', {
@@ -120,7 +120,11 @@
     }
 
     function playVideo(i, videoID, startTime, endTime) {
-	  continuousIndex = i;
+	  Index = i;
+	  console.log(i, videoID, startTime, endTime);
+	  console.log("playVideo");
+	  console.log(Index)
+	  console.log(videoData[Index]);
       if (player) {
 		if(isAutoPlay){
 			player.loadVideoById({
@@ -163,16 +167,20 @@
 	}
 	
     function playNextVideo() {
-      if (isContinuousPlayback && continuousIndex < videoData.length) {
-        continuousIndex++;
-        var currentVideo = videoData[continuousIndex];
+	  console.log("PlayNextVideoFirst");
+	  console.log(Index);
+	  console.log(videoData[Index]);
+      if (isContinuousPlayback && Index < videoData.length) {
+		console.log(Index)
+        Index++;
+        var currentVideo = videoData[Index];
         playVideo(currentVideo.i, currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
       }
 	  else if(isRandomPlay){
-		continuousIndex = getRandomInt(0, videoData.length)
-		console.log(continuousIndex)
-		var currentVideo = videoData[continuousIndex];
-        playVideo(continuousIndex, currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
+		Index = getRandomInt(0, videoData.length)
+		console.log(Index)
+		var currentVideo = videoData[Index];
+        playVideo(Index, currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
 	  }
     }
 
