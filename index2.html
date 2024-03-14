@@ -43,6 +43,7 @@
 
     function onYouTubeIframeAPIReady() {
       player = new YT.Player('player', {
+		host: 'https://www.youtube-nocookie.com',
         height: '360', // 影片高度
         width: '640', // 影片寬度
         playerVars: {
