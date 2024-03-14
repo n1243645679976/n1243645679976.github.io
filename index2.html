@@ -21,9 +21,15 @@
   <label>
     <input type="checkbox" id="continuousPlayback"> 連續播放
   </label>
+  <label>
+	<input type="checkbox" id="autoPlay"> 自動播放(不推薦)
+  </label>
+  <label>
+	<input type="checkbox" id="randomPlay"> 隨機播放
+  </label>
 
   <!-- 隨機攪亂按鈕 -->
-  <button id="shuffleButton">隨機攪亂</button>
+  <button id="shuffleButton">隨機播放</button>
 
   <!-- 在此處顯示名稱列表 -->
   <ul class="video-list" id="videoList"></ul>
@@ -57,7 +63,6 @@
     }
 
     function onPlayerReady(event) {
-      // 讀取預設的input.txt內容，並在右邊顯示名稱列表
       fetch('input.txt')
         .then(response => response.text())
         .then(fileContent => {
@@ -66,7 +71,6 @@
         });
     }
 
-    // 解析檔案內容為影片資料
     function parseFileContent(content) {
       var lines = content.split(/\r\n|\n/);
       var videoData = [];
@@ -82,7 +86,6 @@
       }
       return videoData;
     }
-
 
 	function parseTime(timeString) {
 	  var timeParts = timeString.split(':');
@@ -101,7 +104,7 @@
 	  date.setSeconds(seconds);
 	  return seconds;
 	}
-    // 在右邊顯示名稱列表
+	
     function showVideoList(videoData) {
       var videoListElement = document.getElementById('videoList');
       videoListElement.innerHTML = '';
@@ -116,42 +119,60 @@
       });
     }
 
-    // 播放指定的YouTube影片從指定的開始時間到結束時間
     function playVideo(videoID, startTime, endTime) {
       if (player) {
-        player.loadVideoById({
-          videoId: videoID,
-          startSeconds: startTime,
-          endSeconds: endTime,
-          suggestedQuality: 'default'
-        });
+		if(isAutoPlay){
+			player.loadVideoById({
+			  videoId: videoID,
+			  startSeconds: startTime,
+			  endSeconds: endTime,
+			  suggestedQuality: 'default'
+			});
+		}
+		else{
+			player.cueVideoById({
+			  videoId: videoID,
+			  startSeconds: startTime,
+			  endSeconds: endTime,
+			  suggestedQuality: 'default'
+			});
+		}
       }
     }
 
-    // 連續播放功能
     var continuousPlaybackCheckbox = document.getElementById('continuousPlayback');
     continuousPlaybackCheckbox.addEventListener('change', function () {
       isContinuousPlayback = continuousPlaybackCheckbox.checked;
-      if (isContinuousPlayback) {
-        continuousIndex = 0;
-        playNextVideo();
-      }
     });
 
+    var autoPlayCheckbox = document.getElementById('autoPlay');
+    autoPlayCheckbox.addEventListener('change', function () {
+      isAutoPlay = autoPlayCheckbox.checked;
+    });
+	
+	var randomPlayCheckbox = document.getElementById('randomPlay');
+    randomPlayCheckbox.addEventListener('change', function () {
+      isRandomPlay = randomPlayCheckbox.checked;
+    });
+	
+	function getRandomInt(min, max) { // [min, max)
+	  min = Math.ceil(min);
+	  max = Math.floor(max);
+	  return Math.floor(Math.random() * (max - min)) + min; 
+	}
+	
     function playNextVideo() {
       if (isContinuousPlayback && continuousIndex < videoData.length) {
         var currentVideo = videoData[continuousIndex];
         playVideo(currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
         continuousIndex++;
       }
+	  else if(isRandomPlay){
+		continuousIndex = getRandomInt(0, videoData.length)
+		var currentVideo = videoData[continuousIndex];
+        playVideo(currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
+	  }
     }
-
-    // 隨機攪亂功能
-    var shuffleButton = document.getElementById('shuffleButton');
-    shuffleButton.addEventListener('click', function () {
-      shuffleVideos();
-      showVideoList(videoData);
-    });
 
     function shuffleVideos() {
       for (var i = videoData.length - 1; i > 0; i--) {
