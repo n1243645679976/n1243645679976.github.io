@@ -81,7 +81,7 @@
           var name = parts[1].trim();
 		  var startTime = parseTime(parts[2].trim());
 		  var endTime = parseTime(parts[3].trim());
-          videoData.push({ videoID, name, startTime, endTime });
+          videoData.push({ i, videoID, name, startTime, endTime });
         }
       }
       return videoData;
@@ -113,13 +113,14 @@
         listItem.textContent = video.name;
         listItem.classList.add('video-list-item');
         listItem.addEventListener('click', function () {
-          playVideo(video.videoID, video.startTime, video.endTime);
+          playVideo(video.i, video.videoID, video.startTime, video.endTime);
         });
         videoListElement.appendChild(listItem);
       });
     }
 
-    function playVideo(videoID, startTime, endTime) {
+    function playVideo(i, videoID, startTime, endTime) {
+	  continuousIndex = i;
       if (player) {
 		if(isAutoPlay){
 			player.loadVideoById({
@@ -163,22 +164,16 @@
 	
     function playNextVideo() {
       if (isContinuousPlayback && continuousIndex < videoData.length) {
-        var currentVideo = videoData[continuousIndex];
-        playVideo(currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
         continuousIndex++;
+        var currentVideo = videoData[continuousIndex];
+        playVideo(currentVideo.i, currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
       }
 	  else if(isRandomPlay){
 		continuousIndex = getRandomInt(0, videoData.length)
+		console.log(continuousIndex)
 		var currentVideo = videoData[continuousIndex];
-        playVideo(currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
+        playVideo(continuousIndex, currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
 	  }
-    }
-
-    function shuffleVideos() {
-      for (var i = videoData.length - 1; i > 0; i--) {
-        var j = Math.floor(Math.random() * (i + 1));
-        [videoData[i], videoData[j]] = [videoData[j], videoData[i]];
-      }
     }
 
     // 監聽播放器狀態，如果為ENDED狀態，則播放下一個影片
