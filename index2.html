@@ -46,6 +46,7 @@
     var videoData = [];
     var isContinuousPlayback = false;
     var Index = 0;
+	var isAutoPlay = false;
 
     function onYouTubeIframeAPIReady() {
 	console.log('apiready')
@@ -169,12 +170,16 @@
     function playNextVideo() {
 	  console.log("PlayNextVideoFirst", Index, videoData[Index]);
       if (isContinuousPlayback && Index < videoData.length) {
+        currentVideo = videoData[Index];
+		player.seekTo(currentVideo.startTime)
 		console.log(Index)
         Index++;
         var currentVideo = videoData[Index];
         playVideo(currentVideo.i, currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
       }
 	  else if(isRandomPlay){
+        currentVideo = videoData[Index];
+		player.seekTo(currentVideo.startTime)
 		Index = getRandomInt(0, videoData.length)
 		console.log(Index)
 		var currentVideo = videoData[Index];
