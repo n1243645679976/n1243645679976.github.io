@@ -89,7 +89,8 @@
                 .then(fileContent => {
                     videoData = parseFileContent(fileContent);
                     showVideoList(videoData);
-                    document.cookie = "userInput=" + fileContent;
+                    document.cookie = "userInput=" + encodeURIComponent(fileContent);
+					console.log(document.cookie)
 					document.getElementById("userInput").value = fileContent;
                 });
         }
@@ -219,7 +220,7 @@
     
     function saveData() {
         var userInput = document.getElementById("userInput").value;
-        document.cookie = "userInput=" + userInput;
+        document.cookie = "userInput=" + encodeURIComponent(fileContent);
 		showVideoList(parseFileContent(userInput));
     }
 
