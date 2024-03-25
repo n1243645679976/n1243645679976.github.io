@@ -3,7 +3,10 @@
 <head>
   <title>YouTube嵌入影片</title>
   <style>
-    /* 自訂樣式 */
+    .scrollable-ul {
+        max-height: 200px; 
+        overflow-y: auto;
+    }
     .video-list {
       list-style: none;
       padding: 0;
@@ -32,7 +35,7 @@
   <button id="shuffleButton">隨機播放</button>
 
   <!-- 在此處顯示名稱列表 -->
-  <ul class="video-list" id="videoList"></ul>
+  <ul class="video-list scrollable-ul" id="videoList"></ul>
   <div id="player"></div>
   <script>
     // 嵌入YouTube播放器API的程式碼
