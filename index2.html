@@ -89,8 +89,8 @@
                 .then(fileContent => {
                     videoData = parseFileContent(fileContent);
                     showVideoList(videoData);
-                    document.cookie = "userInput=" + videoData;
-					document.getElementById("userInput").value = videoData;
+                    document.cookie = "userInput=" + fileContent;
+					document.getElementById("userInput").value = fileContent;
                 });
         }
     }
