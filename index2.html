@@ -220,7 +220,7 @@
     function saveData() {
         var userInput = document.getElementById("userInput").value;
         document.cookie = "userInput=" + userInput;
-		parseFileContent(userInput);
+		showVideoList(parseFileContent(userInput));
     }
 
     function getCookie(name) {
