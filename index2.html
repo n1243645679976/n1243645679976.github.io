@@ -79,9 +79,11 @@
     }
 
     function onPlayerReady(event) {
-        var userInputCookie = getCookie("userInput");
-        if (userInputCookie) {
-            document.getElementById("userInput").value = userInputCookie;
+		var userInput = localStorage.getItem("userInput");
+        if (userInput) {
+            document.getElementById("userInput").value = userInput;
+			videoData = parseFileContent(userInput);
+			showVideoList(videoData);
         }
         else {
             fetch('input.txt')
@@ -89,8 +91,7 @@
                 .then(fileContent => {
                     videoData = parseFileContent(fileContent);
                     showVideoList(videoData);
-                    document.cookie = "userInput=" + encodeURIComponent(fileContent);
-					console.log(document.cookie)
+					localStorage.setItem("userInput", fileContent);
 					document.getElementById("userInput").value = fileContent;
                 });
         }
@@ -220,20 +221,10 @@
     
     function saveData() {
         var userInput = document.getElementById("userInput").value;
-        document.cookie = "userInput=" + encodeURIComponent(userInput);
+		localStorage.setItem("userInput", userInput);
 		showVideoList(parseFileContent(userInput));
     }
 
-    function getCookie(name) {
-        var cookieArr = document.cookie.split("; ");
-        for (var i = 0; i < cookieArr.length; i++) {
-            var cookiePair = cookieArr[i].split("=");
-            if (cookiePair[0] === name) {
-                return decodeURIComponent(cookiePair[1]);
-            }
-        }
-        return null;
-    }
     
   </script>
 </body>
