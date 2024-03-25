@@ -21,6 +21,7 @@
   </style>
 </head>
 <body>
+<div class="container">
   <!-- 連續播放的checkbox -->
   <label>
     <input type="checkbox" id="continuousPlayback"> 連續播放
@@ -38,6 +39,15 @@
   <!-- 在此處顯示名稱列表 -->
   <ul class="video-list scrollable-ul" id="videoList"></ul>
   <div id="player"></div>
+    </div>
+
+    <!-- Added textarea on the right side -->
+    <div class="textarea-container">
+        <textarea id="userInput" rows="15" cols="60"></textarea><br>
+        <button onclick="saveData()">Save</button><br>
+        <label id="outputLabel"></label>
+    </div>
+</div>
   <script>
     // 嵌入YouTube播放器API的程式碼
     // 確保您已將此程式碼引入HTML頁面中
@@ -199,6 +209,37 @@
       if (event.data === YT.PlayerState.ENDED && isContinuousPlayback) {
         playNextVideo();
       }
+    }
+	
+	
+    function saveData() {
+        var userInput = document.getElementById("userInput").value;
+        document.cookie = "userInput=" + userInput;
+        updateLabel(userInput);
+    }
+
+    function updateLabel(value) {
+        var outputLabel = document.getElementById("outputLabel");
+        outputLabel.textContent = "Last input: " + value;
+    }
+
+    // Check if cookie exists and update label on page load
+    window.onload = function() {
+        var userInputCookie = getCookie("userInput");
+        if (userInputCookie) {
+            updateLabel(userInputCookie);
+        }
+    }
+
+    function getCookie(name) {
+        var cookieArr = document.cookie.split("; ");
+        for (var i = 0; i < cookieArr.length; i++) {
+            var cookiePair = cookieArr[i].split("=");
+            if (cookiePair[0] === name) {
+                return decodeURIComponent(cookiePair[1]);
+            }
+        }
+        return null;
     }
   </script>
 </body>
