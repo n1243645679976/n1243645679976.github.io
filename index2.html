@@ -5,7 +5,7 @@
   <style>
     .scrollable-ul {
         max-height: 500px; 
-		max-width: 640px;
+        max-width: 640px;
         overflow-y: auto;
     }
     .video-list {
@@ -27,10 +27,10 @@
     <input type="checkbox" id="continuousPlayback"> 連續播放
   </label>
   <label>
-	<input type="checkbox" id="autoPlay"> 自動播放(不推薦)
+    <input type="checkbox" id="autoPlay"> 自動播放(不推薦)
   </label>
   <label>
-	<input type="checkbox" id="randomPlay"> 隨機播放
+    <input type="checkbox" id="randomPlay"> 隨機播放
   </label>
 
   <!-- 隨機攪亂按鈕 -->
@@ -45,7 +45,6 @@
     <div class="textarea-container">
         <textarea id="userInput" rows="15" cols="60"></textarea><br>
         <button onclick="saveData()">Save</button><br>
-        <label id="outputLabel"></label>
     </div>
 </div>
   <script>
@@ -59,176 +58,169 @@
     var player;
     var videoData = [];
     var isContinuousPlayback = false;
-	var isRandomPlay = false;
-	var isAutoPlay = false;
+    var isRandomPlay = false;
+    var isAutoPlay = false;
     var Index = 0;
 
     function onYouTubeIframeAPIReady() {
-	console.log('apiready')
-      player = new YT.Player('player', {
-		host: 'https://www.youtube-nocookie.com',
-        height: '360', // 影片高度
-        width: '640', // 影片寬度
-        playerVars: {
-          autoplay: 0 // 不要自動播放
-        },
-        events: {
-          'onReady': onPlayerReady,
-          'onStateChange': onPlayerStateChange
-        }
-      });
+        console.log('apiready')
+        player = new YT.Player('player', {
+            host: 'https://www.youtube-nocookie.com',
+            height: '360', // 影片高度
+            width: '640', // 影片寬度
+            playerVars: {
+                autoplay: 0 // 不要自動播放
+            },
+            events: {
+                'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange
+            }
+        });
     }
 
     function onPlayerReady(event) {
-	
-	console.log('ready')
-      fetch('input.txt')
-        .then(response => response.text())
-        .then(fileContent => {
-          videoData = parseFileContent(fileContent);
-          showVideoList(videoData);
-        });
+        var userInputCookie = getCookie("userInput");
+        if (userInputCookie) {
+            document.getElementById("userInput").value = userInputCookie;
+        }
+        else {
+            fetch('input.txt')
+                .then(response => response.text())
+                .then(fileContent => {
+                    videoData = parseFileContent(fileContent);
+                    showVideoList(videoData);
+                    document.cookie = "userInput=" + videoData;
+					document.getElementById("userInput").value = videoData;
+                });
+        }
     }
 
     function parseFileContent(content) {
-      var lines = content.split(/\r\n|\n/);
-      var videoData = [];
-      for (var i = 0; i < lines.length; i++) {
-        var parts = lines[i].split(',');
-        if (parts.length === 4) {
-          var videoID = parts[0].trim();
-          var name = parts[1].trim();
-		  var startTime = parseTime(parts[2].trim());
-		  var endTime = parseTime(parts[3].trim());
-          videoData.push({ i, videoID, name, startTime, endTime });
+        var lines = content.split(/\r\n|\n/);
+        var videoData = [];
+        for (var i = 0; i < lines.length; i++) {
+			var parts = lines[i].split(',');
+			if (parts.length === 4) {
+			    var videoID = parts[0].trim();
+			    var name = parts[1].trim();
+			    var startTime = parseTime(parts[2].trim());
+			    var endTime = parseTime(parts[3].trim());
+			    videoData.push({ i, videoID, name, startTime, endTime });
+			}
         }
-      }
       return videoData;
     }
 
-	function parseTime(timeString) {
-	  var timeParts = timeString.split(':');
-	  var seconds = 0;
-	  if (timeParts.length === 3) {
-		seconds += parseInt(timeParts[0]) * 3600; // hours
-		seconds += parseInt(timeParts[1]) * 60;   // minutes
-		seconds += parseInt(timeParts[2]);        // seconds
-	  } else if (timeParts.length === 2) {
-		seconds += parseInt(timeParts[0]) * 60;   // minutes
-		seconds += parseInt(timeParts[1]);        // seconds
-	  } else if (timeParts.length === 1) {
-		seconds += parseInt(timeParts[0]);
-	  }
-	  var date = new Date(null);
-	  date.setSeconds(seconds);
-	  return seconds;
-	}
-	
+    function parseTime(timeString) {
+        var timeParts = timeString.split(':');
+        var seconds = 0;
+        if (timeParts.length === 3) {
+            seconds += parseInt(timeParts[0]) * 3600; // hours
+            seconds += parseInt(timeParts[1]) * 60;   // minutes
+            seconds += parseInt(timeParts[2]);        // seconds
+        } else if (timeParts.length === 2) {
+			seconds += parseInt(timeParts[0]) * 60;   // minutes
+			seconds += parseInt(timeParts[1]);        // seconds
+        } else if (timeParts.length === 1) {
+			seconds += parseInt(timeParts[0]);
+        }
+        var date = new Date(null);
+        date.setSeconds(seconds);
+        return seconds;
+    }
+    
     function showVideoList(videoData) {
-      var videoListElement = document.getElementById('videoList');
-      videoListElement.innerHTML = '';
-      videoData.forEach(function (video) {
-        var listItem = document.createElement('li');
-        listItem.textContent = video.name;
-        listItem.classList.add('video-list-item');
-        listItem.addEventListener('click', function () {
-          playVideo(video.i, video.videoID, video.startTime, video.endTime);
+        var videoListElement = document.getElementById('videoList');
+        videoListElement.innerHTML = '';
+        videoData.forEach(function (video) {
+			var listItem = document.createElement('li');
+			listItem.textContent = video.name;
+			listItem.classList.add('video-list-item');
+			listItem.addEventListener('click', function () {
+			    playVideo(video.i, video.videoID, video.startTime, video.endTime);
+			});
+			videoListElement.appendChild(listItem);
         });
-        videoListElement.appendChild(listItem);
-      });
     }
 
     function playVideo(i, videoID, startTime, endTime) {
-	  Index = i;
-	  console.log("playVideo", Index, videoData[Index], i, videoID, startTime, endTime);
-      if (player) {
-		if(isAutoPlay){
-			player.loadVideoById({
-			  videoId: videoID,
-			  startSeconds: startTime,
-			  endSeconds: endTime,
-			  suggestedQuality: 'default'
-			});
-		}
-		else{
-			player.cueVideoById({
-			  videoId: videoID,
-			  startSeconds: startTime,
-			  endSeconds: endTime,
-			  suggestedQuality: 'default'
-			});
-		}
-      }
+        Index = i;
+        console.log("playVideo", Index, videoData[Index], i, videoID, startTime, endTime);
+        if (player) {
+			if(isAutoPlay){
+				player.loadVideoById({
+				    videoId: videoID,
+				    startSeconds: startTime,
+				    endSeconds: endTime,
+				    suggestedQuality: 'default'
+				});
+			}
+			else{
+				player.cueVideoById({
+				    videoId: videoID,
+				    startSeconds: startTime,
+				    endSeconds: endTime,
+				    suggestedQuality: 'default'
+				});
+			}
+        }
     }
 
     var continuousPlaybackCheckbox = document.getElementById('continuousPlayback');
     continuousPlaybackCheckbox.addEventListener('change', function () {
-      isContinuousPlayback = continuousPlaybackCheckbox.checked;
+        isContinuousPlayback = continuousPlaybackCheckbox.checked;
     });
 
     var autoPlayCheckbox = document.getElementById('autoPlay');
     autoPlayCheckbox.addEventListener('change', function () {
-      isAutoPlay = autoPlayCheckbox.checked;
+        isAutoPlay = autoPlayCheckbox.checked;
     });
-	
-	var randomPlayCheckbox = document.getElementById('randomPlay');
+    
+    var randomPlayCheckbox = document.getElementById('randomPlay');
     randomPlayCheckbox.addEventListener('change', function () {
-      isRandomPlay = randomPlayCheckbox.checked;
+        isRandomPlay = randomPlayCheckbox.checked;
     });
-	
-	function getRandomInt(min, max) { // [min, max)
-	  min = Math.ceil(min);
-	  max = Math.floor(max);
-	  return Math.floor(Math.random() * (max - min)) + min; 
-	}
-	
+    
+    function getRandomInt(min, max) { // [min, max)
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min)) + min; 
+    }
+    
     function playNextVideo() {
-	  console.log("PlayNextVideoFirst", Index, videoData[Index]);
-      if (isContinuousPlayback && Index < videoData.length) {
-		  if(isRandomPlay){
-			currentVideo = videoData[Index];
-			player.seekTo(currentVideo.startTime)
-			Index = getRandomInt(0, videoData.length)
-			console.log(Index)
-			var currentVideo = videoData[Index];
-			playVideo(Index, currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
-		  }
-		  else{
-			currentVideo = videoData[Index];
-			player.seekTo(currentVideo.startTime)
-			console.log(Index)
-			Index++;
-			var currentVideo = videoData[Index];
-			playVideo(currentVideo.i, currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
-		}
-      }
+        console.log("PlayNextVideoFirst", Index, videoData[Index]);
+        if (isContinuousPlayback && Index < videoData.length) {
+			if(isRandomPlay){
+				currentVideo = videoData[Index];
+				player.seekTo(currentVideo.startTime)
+				Index = getRandomInt(0, videoData.length)
+				console.log(Index)
+				var currentVideo = videoData[Index];
+				playVideo(Index, currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
+			}
+			else{
+				currentVideo = videoData[Index];
+				player.seekTo(currentVideo.startTime)
+				console.log(Index)
+				Index++;
+				var currentVideo = videoData[Index];
+				playVideo(currentVideo.i, currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
+			}
+        }
     }
 
     // 監聽播放器狀態，如果為ENDED狀態，則播放下一個影片
     function onPlayerStateChange(event) {
-      if (event.data === YT.PlayerState.ENDED && isContinuousPlayback) {
-        playNextVideo();
-      }
+        if (event.data === YT.PlayerState.ENDED && isContinuousPlayback) {
+            playNextVideo();
+        }
     }
-	
-	
+    
+    
     function saveData() {
         var userInput = document.getElementById("userInput").value;
         document.cookie = "userInput=" + userInput;
-        updateLabel(userInput);
-    }
-
-    function updateLabel(value) {
-        var outputLabel = document.getElementById("outputLabel");
-        outputLabel.textContent = "Last input: " + value;
-    }
-
-    // Check if cookie exists and update label on page load
-    window.onload = function() {
-        var userInputCookie = getCookie("userInput");
-        if (userInputCookie) {
-            updateLabel(userInputCookie);
-        }
+		parseFileContent(userInput);
     }
 
     function getCookie(name) {
@@ -241,6 +233,7 @@
         }
         return null;
     }
+    
   </script>
 </body>
 </html>
