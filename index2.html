@@ -32,6 +32,7 @@
   <label>
     <input type="checkbox" id="randomPlay"> 隨機播放
   </label>
+<button onclick="clearUserInput()">Clear Input</button>
 
   <!-- 隨機攪亂按鈕 -->
   <button id="shuffleButton">隨機播放</button>
@@ -48,6 +49,10 @@
     </div>
 </div>
   <script>
+    function clearUserInput() {
+        localStorage.removeItem("userInput");
+        document.getElementById("userInput").value = "";
+    }
     // 嵌入YouTube播放器API的程式碼
     // 確保您已將此程式碼引入HTML頁面中
     var tag = document.createElement('script');
