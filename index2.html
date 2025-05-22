@@ -61,6 +61,9 @@
     var isRandomPlay = false;
     var isAutoPlay = false;
     var Index = 0;
+	
+	var shuffledVideoData = [];
+	var shuffledIndex = 0;
 
     function onYouTubeIframeAPIReady() {
         console.log('apiready')
@@ -181,24 +184,33 @@
     var randomPlayCheckbox = document.getElementById('randomPlay');
     randomPlayCheckbox.addEventListener('change', function () {
         isRandomPlay = randomPlayCheckbox.checked;
+		if (isRandomPlay) {
+			shuffledVideoData = shuffleArray([...videoData]); // 用拷貝來洗牌
+			shuffledIndex = 0;
+		}
     });
-    
-    function getRandomInt(min, max) { // [min, max)
-        min = Math.ceil(min);
-        max = Math.floor(max);
-        return Math.floor(Math.random() * (max - min)) + min; 
-    }
+
+	function shuffleArray(array) {
+		for (let i = array.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[array[i], array[j]] = [array[j], array[i]];
+		}
+		return array;
+	}
     
     function playNextVideo() {
         console.log("PlayNextVideoFirst", Index, videoData[Index]);
         if (isContinuousPlayback && Index < videoData.length) {
 			if(isRandomPlay){
-				currentVideo = videoData[Index];
-				player.seekTo(currentVideo.startTime)
-				Index = getRandomInt(0, videoData.length)
-				console.log(Index)
-				var currentVideo = videoData[Index];
-				playVideo(Index, currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
+				if (shuffledIndex >= shuffledVideoData.length) {
+					// 重新洗牌
+					shuffledVideoData = shuffleArray([...videoData]);
+					shuffledIndex = 0;
+				}
+				const currentVideo = shuffledVideoData[shuffledIndex];
+				player.seekTo(currentVideo.startTime);
+				playVideo(shuffledIndex, currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
+				shuffledIndex++;
 			}
 			else{
 				currentVideo = videoData[Index];
