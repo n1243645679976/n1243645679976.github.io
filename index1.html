@@ -12,6 +12,12 @@
             font-size: 36px;
             margin-bottom: 20px;
         }
+		
+		textarea {
+		  width: 700px;
+		  height: 500px;
+		  font-size: 16px;
+		}
     </style>
 </head>
 <body>
@@ -38,6 +44,23 @@
 
     <div class="timer" id="timerDisplay"></div>
 
+	<h2>Note (local storage)</h2>
+	<textarea id="myTextarea" placeholder=""></textarea>
+	
     <script src="js/clock.js"></script>
+	
+    <script>
+    const textarea = document.getElementById("myTextarea");
+    const storageKey = "myTextareaContent";
+
+    const savedContent = localStorage.getItem(storageKey);
+    if (savedContent !== null) {
+      textarea.value = savedContent;
+    }
+
+    textarea.addEventListener("input", () => {
+      localStorage.setItem(storageKey, textarea.value);
+    });
+    </script>
 </body>
 </html>
