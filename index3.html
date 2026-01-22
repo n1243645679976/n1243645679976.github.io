@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>YouTube嵌入影片</title>
+  <style>
+    .scrollable-ul {
+        max-height: 500px; 
+        max-width: 640px;
+        overflow-y: auto;
+    }
+    .video-list {
+      list-style: none;
+      padding: 0;
+    }
+    .video-list-item {
+      cursor: pointer;
+      margin-bottom: 5px;
+      padding: 5px;
+      background-color: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <!-- 連續播放的checkbox -->
+  <label>
+    <input type="checkbox" id="continuousPlayback"> 連續播放
+  </label>
+  <label>
+    <input type="checkbox" id="autoPlay"> 自動播放(不推薦)
+  </label>
+  <label>
+    <input type="checkbox" id="randomPlay"> 隨機播放
+  </label>
+<button onclick="clearUserInput()">Clear Input</button>
+
+  <!-- 隨機攪亂按鈕 -->
+  <button id="shuffleButton">隨機播放</button>
+
+  <!-- 在此處顯示名稱列表 -->
+  <ul class="video-list scrollable-ul" id="videoList"></ul>
+  <div id="player"></div>
+    </div>
+
+    <!-- Added textarea on the right side -->
+    <div class="textarea-container">
+        <textarea id="userInput" rows="15" cols="60"></textarea><br>
+        <button onclick="saveData()">Save</button><br>
+    </div>
+</div>
+  <script>
+    function clearUserInput() {
+        localStorage.removeItem("userInput");
+        document.getElementById("userInput").value = "";
+    }
+    // 嵌入YouTube播放器API的程式碼
+    // 確保您已將此程式碼引入HTML頁面中
+    var tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    var player;
+    var videoData = [];
+    var isContinuousPlayback = false;
+    var isRandomPlay = false;
+    var isAutoPlay = false;
+    var Index = 0;
+	
+	var shuffledVideoData = [];
+	var shuffledIndex = 0;
+
+    function onYouTubeIframeAPIReady() {
+        console.log('apiready')
+        player = new YT.Player('player', {
+            host: 'https://www.youtube.com',
+            height: '360', // 影片高度
+            width: '640', // 影片寬度
+            playerVars: {
+                autoplay: 0 // 不要自動播放
+            },
+            events: {
+                'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange
+            }
+        });
+    }
+
+    function onPlayerReady(event) {
+		var userInput = localStorage.getItem("userInput");
+        if (userInput) {
+            document.getElementById("userInput").value = userInput;
+			videoData = parseFileContent(userInput);
+			showVideoList(videoData);
+        }
+        else {
+            fetch('input.txt')
+                .then(response => response.text())
+                .then(fileContent => {
+                    videoData = parseFileContent(fileContent);
+                    showVideoList(videoData);
+					localStorage.setItem("userInput", fileContent);
+					document.getElementById("userInput").value = fileContent;
+                });
+        }
+    }
+
+    function parseFileContent(content) {
+        var lines = content.split(/\r\n|\n/);
+        var videoData = [];
+        for (var i = 0; i < lines.length; i++) {
+			var parts = lines[i].split(',');
+			if (parts.length === 4) {
+			    var videoID = parts[0].trim();
+			    var name = parts[1].trim();
+			    var startTime = parseTime(parts[2].trim());
+			    var endTime = parseTime(parts[3].trim());
+			    videoData.push({ i, videoID, name, startTime, endTime });
+			}
+        }
+      return videoData;
+    }
+
+    function parseTime(timeString) {
+        var timeParts = timeString.split(':');
+        var seconds = 0;
+        if (timeParts.length === 3) {
+            seconds += parseInt(timeParts[0]) * 3600; // hours
+            seconds += parseInt(timeParts[1]) * 60;   // minutes
+            seconds += parseInt(timeParts[2]);        // seconds
+        } else if (timeParts.length === 2) {
+			seconds += parseInt(timeParts[0]) * 60;   // minutes
+			seconds += parseInt(timeParts[1]);        // seconds
+        } else if (timeParts.length === 1) {
+			seconds += parseInt(timeParts[0]);
+        }
+        var date = new Date(null);
+        date.setSeconds(seconds);
+        return seconds;
+    }
+    
+    function showVideoList(videoData) {
+        var videoListElement = document.getElementById('videoList');
+        videoListElement.innerHTML = '';
+        videoData.forEach(function (video) {
+			var listItem = document.createElement('li');
+			listItem.textContent = video.name;
+			listItem.classList.add('video-list-item');
+			listItem.addEventListener('click', function () {
+			    playVideo(video.i, video.videoID, video.startTime, video.endTime);
+			});
+			videoListElement.appendChild(listItem);
+        });
+    }
+
+    function playVideo(i, videoID, startTime, endTime) {
+        Index = i;
+        console.log("playVideo", Index, videoData[Index], i, videoID, startTime, endTime);
+        if (player) {
+			if(isAutoPlay){
+				player.loadVideoById({
+				    videoId: videoID,
+				    startSeconds: startTime,
+				    endSeconds: endTime,
+				    suggestedQuality: 'default'
+				});
+			}
+			else{
+				player.cueVideoById({
+				    videoId: videoID,
+				    startSeconds: startTime,
+				    endSeconds: endTime,
+				    suggestedQuality: 'default'
+				});
+			}
+        }
+    }
+
+    var continuousPlaybackCheckbox = document.getElementById('continuousPlayback');
+    continuousPlaybackCheckbox.addEventListener('change', function () {
+        isContinuousPlayback = continuousPlaybackCheckbox.checked;
+    });
+
+    var autoPlayCheckbox = document.getElementById('autoPlay');
+    autoPlayCheckbox.addEventListener('change', function () {
+        isAutoPlay = autoPlayCheckbox.checked;
+    });
+    
+    var randomPlayCheckbox = document.getElementById('randomPlay');
+    randomPlayCheckbox.addEventListener('change', function () {
+        isRandomPlay = randomPlayCheckbox.checked;
+		if (isRandomPlay) {
+			shuffledVideoData = shuffleArray([...videoData]); // 用拷貝來洗牌
+			shuffledIndex = 0;
+		}
+    });
+
+	function shuffleArray(array) {
+		for (let i = array.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[array[i], array[j]] = [array[j], array[i]];
+		}
+		return array;
+	}
+    
+    function playNextVideo() {
+        console.log("PlayNextVideoFirst", Index, videoData[Index]);
+        if (isContinuousPlayback && Index < videoData.length) {
+			if(isRandomPlay){
+				if (shuffledIndex >= shuffledVideoData.length) {
+					// 重新洗牌
+					shuffledVideoData = shuffleArray([...videoData]);
+					shuffledIndex = 0;
+				}
+				const currentVideo = shuffledVideoData[shuffledIndex];
+				player.seekTo(currentVideo.startTime);
+				playVideo(shuffledIndex, currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
+				shuffledIndex++;
+			}
+			else{
+				currentVideo = videoData[Index];
+				player.seekTo(currentVideo.startTime)
+				console.log(Index)
+				Index++;
+				var currentVideo = videoData[Index];
+				playVideo(currentVideo.i, currentVideo.videoID, currentVideo.startTime, currentVideo.endTime);
+			}
+        }
+    }
+
+    // 監聽播放器狀態，如果為ENDED狀態，則播放下一個影片
+    function onPlayerStateChange(event) {
+        if (event.data === YT.PlayerState.ENDED && isContinuousPlayback) {
+            playNextVideo();
+        }
+    }
+    
+    
+    function saveData() {
+        var userInput = document.getElementById("userInput").value;
+		localStorage.setItem("userInput", userInput);
+		showVideoList(parseFileContent(userInput));
+    }
+
+    
+  </script>
+</body>
+</html>
